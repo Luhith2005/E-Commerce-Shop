@@ -121,9 +121,9 @@ const Home = ({ onOpenDetails }) => {
           <div className="hero-image-wrapper">
             <div className="hero-circle-bg"></div>
             <img
-              src="/images/shoes/jordan-retro.png"
-              alt="Featured Nike Sneaker"
-              className="hero-image"
+              src="/images/shoes/prabhas-wearing-shoes.png"
+              alt="Prabhas wearing SriRam's FootWear"
+              className="hero-actor-image"
             />
           </div>
         </div>

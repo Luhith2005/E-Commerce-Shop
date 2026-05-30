@@ -491,24 +491,40 @@ button {
   z-index: 1;
 }
 
-.hero-image {
+
+
+.hero-actor-image {
   width: 100%;
   max-width: 480px;
   height: auto;
-  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   z-index: 2;
-  transform: rotate(-15deg) translateY(-20px);
-  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.6));
-  animation: floatImage 6s ease-in-out infinite;
-  border-radius: 10px;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px var(--accent-neon-glow);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease, border-color 0.5s ease;
+  animation: walkAnimation 3.5s ease-in-out infinite;
 }
 
-@keyframes floatImage {
+.hero-actor-image:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--accent-neon);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 35px rgba(102, 252, 241, 0.5);
+}
+
+@keyframes walkAnimation {
   0%, 100% {
-    transform: rotate(-15deg) translateY(-20px);
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-6px) translateX(-3px) rotate(-0.8deg);
   }
   50% {
-    transform: rotate(-12deg) translateY(-40px);
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-6px) translateX(3px) rotate(0.8deg);
   }
 }
 
