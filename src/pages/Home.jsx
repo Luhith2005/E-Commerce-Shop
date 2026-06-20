@@ -249,7 +249,7 @@ const Home = ({ onOpenDetails }) => {
     {
       title: "Big Billion Upgrades",
       subtitle: "Mobiles Mega Carnival: Apple, Samsung & OnePlus",
-      image: "/images/mobiles/iphone15.png",
+      image: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop",
       category: "Mobiles",
       bgColor: "linear-gradient(135deg, rgba(102, 252, 241, 0.15) 0%, rgba(31, 40, 51, 0.9) 100%)",
       accent: "var(--accent-neon)"
@@ -257,7 +257,7 @@ const Home = ({ onOpenDetails }) => {
     {
       title: "Ajio-Style Fashion Week",
       subtitle: "Up to 50% Off on Zara, H&M, Roadster & Levi's",
-      image: "/images/clothing/mens_shirt.png",
+      image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop",
       category: "Clothing",
       bgColor: "linear-gradient(135deg, rgba(255, 42, 95, 0.15) 0%, rgba(31, 40, 51, 0.9) 100%)",
       accent: "var(--accent-crimson)"
@@ -265,7 +265,7 @@ const Home = ({ onOpenDetails }) => {
     {
       title: "Smart Appliance Days",
       subtitle: "Upgrade to LG, Voltas, & Sony Bravia Smart TVs",
-      image: "/images/appliances/washing_machine.png",
+      image: "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=600&auto=format&fit=crop",
       category: "Appliances",
       bgColor: "linear-gradient(135deg, rgba(255, 204, 0, 0.1) 0%, rgba(31, 40, 51, 0.9) 100%)",
       accent: "#ffcc00"
@@ -823,7 +823,7 @@ const Home = ({ onOpenDetails }) => {
             </div>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative", height: "220px", width: "100%" }}>
               <img
-                src="/images/mobiles/iphone15.png"
+                src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop"
                 alt="Promo Phone"
                 className="promo-image animated-promo-shoe"
                 style={{
