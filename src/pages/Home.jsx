@@ -1,14 +1,25 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useCart } from "../context/CartContext";
-import { shoes, brands } from "../data/data";
-import ShoeCard from "../components/ShoeCard";
-import { ArrowRight } from "lucide-react";
+import { fetchProducts } from "../services/api";
+import { brands } from "../data/data";
+import ProductCard from "../components/ProductCard";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { MenIcon, WomenIcon } from "../components/GenderIcons";
 
 const brandLogos = {
   Nike: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
       <path d="M24 7.8L6.442 15.276c-1.456.616-2.679.925-3.668.925-1.12 0-1.933-.392-2.437-1.177-.317-.504-.41-1.143-.28-1.918.13-.775.476-1.6 1.036-2.478.467-.71 1.232-1.643 2.297-2.8a6.122 6.122 0 00-.784 1.848c-.28 1.195-.028 2.072.756 2.632.373.261.886.392 1.54.392.522 0 1.11-.084 1.764-.252L24 7.8z" />
+    </svg>
+  ),
+  Adidas: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="m24 19.535-8.697-15.07-4.659 2.687 7.145 12.383Zm-8.287 0L9.969 9.59 5.31 12.277l4.192 7.258ZM4.658 14.723l2.776 4.812H1.223L0 17.41Z" />
+    </svg>
+  ),
+  Puma: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.845 3.008c-.417-.533-1.146-.106-1.467.08-2.284 1.346-2.621 3.716-3.417 5.077-.626 1.09-1.652 1.89-2.58 1.952-.686.049-1.43-.084-2.168-.405-1.807-.781-2.78-1.792-3.017-1.97-.487-.37-4.23-4.015-7.28-4.164 0 0-.372-.75-.465-.763-.222-.025-.45.451-.616.501-.15.053-.413-.512-.565-.487-.153.02-.302.586-.6.877-.22.213-.486.2-.637.463-.052.096-.034.265-.093.42-.127.32-.551.354-.555.697 0 .381.357.454.669.72.248.212.265.362.554.461.258.088.632-.187.964-.088.277.081.543.14.602.423.054.256 0 .658-.34.613-.112-.015-.598-.174-1.198-.11-.725.077-1.553.309-1.634 1.11-.041.447.514.97 1.055.866.371-.071.196-.506.399-.716.267-.27 1.772.944 3.172.944.593 0 1.031-.15 1.467-.605.04-.029.093-.102.155-.11a.632.632 0 01.195.088c1.131.897 1.984 2.7 6.13 2.721.582.007 1.25.279 1.796.777.48.433.764 1.125 1.037 1.825.418 1.053 1.161 2.069 2.292 3.203.06.068.99.78 1.06.833.012.01.084.167.053.255-.02.69-.123 2.67 1.365 2.753.366.02.275-.231.275-.41-.005-.341-.065-.685.113-1.04.253-.478-.526-.709-.509-1.756.019-.784-.645-.651-.984-1.25-.19-.343-.368-.532-.35-.946.073-2.38-.517-3.948-.805-4.327-.227-.294-.423-.403-.207-.54 1.24-.815 1.525-1.574 1.525-1.574.66-1.541 1.256-2.945 2.075-3.57.166-.12.589-.44.852-.56.763-.362 1.173-.578 1.388-.788.356-.337.635-1.053.294-1.48z" />
     </svg>
   ),
   Adidas: (
@@ -74,297 +85,718 @@ const brandLogos = {
   )
 };
 
+const getBrandLogo = (brand) => {
+  if (brandLogos[brand]) return brandLogos[brand];
+  return (
+    <div style={{
+      width: "20px",
+      height: "20px",
+      borderRadius: "50%",
+      backgroundColor: "var(--accent-neon)",
+      color: "var(--bg-primary)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: "800",
+      fontSize: "0.75rem",
+      lineHeight: "1"
+    }}>
+      {brand.charAt(0)}
+    </div>
+  );
+};
+
+const homeCategories = [
+  {
+    name: "Mobiles",
+    label: "Mobiles",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+        <line x1="12" y1="18" x2="12.01" y2="18" />
+      </svg>
+    )
+  },
+  {
+    name: "Laptops",
+    label: "Laptops",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+        <line x1="2" y1="20" x2="22" y2="20" />
+        <line x1="12" y1="20" x2="12.01" y2="20" />
+      </svg>
+    )
+  },
+  {
+    name: "Clothing",
+    label: "Fashion",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l1.08 5.4a2 2 0 0 0 1.97 1.61H7v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-8h1.67a2 2 0 0 0 1.97-1.61l1.08-5.4a2 2 0 0 0-1.34-2.23z" />
+      </svg>
+    )
+  },
+  {
+    name: "Appliances",
+    label: "Appliances",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="20" height="20" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+        <circle cx="12" cy="16" r="2" />
+      </svg>
+    )
+  },
+  {
+    name: "Home & Furniture",
+    label: "Home & Furniture",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    )
+  },
+  {
+    name: "Footwear",
+    label: "Footwear",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 17h11.5a3.5 3.5 0 0 0 3.3-2.3l1.9-5.1A1.5 1.5 0 0 0 18.3 8H12V5.5A1.5 1.5 0 0 0 10.5 4h-1A1.5 1.5 0 0 0 8 5.5V8H4.5A1.5 1.5 0 0 0 3 9.5v7.5z" />
+        <path d="M7 17a2 2 0 1 1-4 0m14 0a2 2 0 1 1-4 0" />
+      </svg>
+    )
+  },
+  {
+    name: "Watches",
+    label: "Watches",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="6" />
+        <polyline points="12 10 12 12 13 13" />
+        <path d="m16.13 5.66-.46-2.92a2 2 0 0 0-1.96-1.69H10.3a2 2 0 0 0-1.96 1.7l-.46 2.92M8.13 18.23l.46 2.92a2 2 0 0 0 1.96 1.69h3.4a2 2 0 0 0 1.96-1.7l.46-2.92" />
+      </svg>
+    )
+  },
+  {
+    name: "Grocery",
+    label: "Grocery",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    )
+  },
+  {
+    name: "Earphones",
+    label: "Earphones",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+      </svg>
+    )
+  },
+  {
+    name: "Toys",
+    label: "Toys",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="9" cy="9" r="2"/>
+        <circle cx="15" cy="15" r="2"/>
+      </svg>
+    )
+  },
+  {
+    name: "Perfumes",
+    label: "Perfumes",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 18h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+        <path d="M9 6V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+        <path d="M12 10v4" />
+        <path d="M10 12h4" />
+      </svg>
+    )
+  }
+];
+
 const Home = ({ onOpenDetails }) => {
   const { navigateTo } = useCart();
-  const [activeTab, setActiveTab] = useState("Shoes");
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const displayItems = useMemo(() => {
-    if (activeTab === "Shoes") {
-      const featured = shoes.filter((s) => s.isFeatured && s.category !== "Chappals");
-      if (featured.length >= 4) return featured.slice(0, 4);
-      const nonFeatured = shoes.filter((s) => !s.isFeatured && s.category !== "Chappals");
-      return [...featured, ...nonFeatured].slice(0, 4);
-    } else {
-      const featured = shoes.filter((s) => s.isFeatured && s.category === "Chappals");
-      const nonFeatured = shoes.filter((s) => !s.isFeatured && s.category === "Chappals");
-      return [...featured, ...nonFeatured].slice(0, 4);
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchProducts().then((data) => {
+      if (active) {
+        setProducts(data);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const slides = useMemo(() => [
+    {
+      title: "Big Billion Upgrades",
+      subtitle: "Mobiles Mega Carnival: Apple, Samsung & OnePlus",
+      image: "/images/mobiles/iphone15.png",
+      category: "Mobiles",
+      bgColor: "linear-gradient(135deg, rgba(102, 252, 241, 0.15) 0%, rgba(31, 40, 51, 0.9) 100%)",
+      accent: "var(--accent-neon)"
+    },
+    {
+      title: "Ajio-Style Fashion Week",
+      subtitle: "Up to 50% Off on Zara, H&M, Roadster & Levi's",
+      image: "/images/clothing/mens_shirt.png",
+      category: "Clothing",
+      bgColor: "linear-gradient(135deg, rgba(255, 42, 95, 0.15) 0%, rgba(31, 40, 51, 0.9) 100%)",
+      accent: "var(--accent-crimson)"
+    },
+    {
+      title: "Smart Appliance Days",
+      subtitle: "Upgrade to LG, Voltas, & Sony Bravia Smart TVs",
+      image: "/images/appliances/washing_machine.png",
+      category: "Appliances",
+      bgColor: "linear-gradient(135deg, rgba(255, 204, 0, 0.1) 0%, rgba(31, 40, 51, 0.9) 100%)",
+      accent: "#ffcc00"
     }
-  }, [activeTab]);
+  ], []);
+
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  };
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
+
+  
+  const shelfMobiles = useMemo(() => products.filter(p => p.category === "Mobiles").slice(0, 4), [products]);
+  const shelfLaptops = useMemo(() => products.filter(p => p.category === "Laptops").slice(0, 4), [products]);
+  const shelfClothing = useMemo(() => products.filter(p => p.category === "Clothing").slice(0, 4), [products]);
+  const shelfAppliances = useMemo(() => products.filter(p => p.category === "Appliances").slice(0, 4), [products]);
+  const shelfFurniture = useMemo(() => products.filter(p => p.category === "Home & Furniture").slice(0, 4), [products]);
+  const shelfFootwear = useMemo(() => products.filter(p => p.category === "Footwear").slice(0, 4), [products]);
+  const shelfWatches = useMemo(() => products.filter(p => p.category === "Watches").slice(0, 4), [products]);
+  const shelfGrocery = useMemo(() => products.filter(p => p.category === "Grocery").slice(0, 4), [products]);
+  const shelfEarphones = useMemo(() => products.filter(p => p.category === "Earphones").slice(0, 4), [products]);
+  const shelfToys = useMemo(() => products.filter(p => p.category === "Toys").slice(0, 4), [products]);
+  const shelfPerfumes = useMemo(() => products.filter(p => p.category === "Perfumes").slice(0, 4), [products]);
 
   return (
     <div className="home-view">
-      <section className="hero-section">
-        <div className="container hero-grid">
-          <div className="hero-content">
-            <h1>
-              Step Into The <br />
-              <span>Future of Style</span>
-            </h1>
-            <p>
-              Discover elite performance, cushioned comfort, and modern aesthetics. SriRam's FootWear offers the absolute best sneakers from global icons.
-            </p>
-            <div className="hero-btn-group">
-              <button className="btn-primary" onClick={() => navigateTo("shop")}>
-                Shop Collection <ArrowRight size={18} />
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  const el = document.getElementById("brands-section");
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                Explore Brands
-              </button>
-            </div>
-          </div>
-          <div className="hero-image-wrapper">
-            <div className="hero-circle-bg"></div>
-            <img
-              src="/images/shoes/prabhas-wearing-shoes.png"
-              alt="Prabhas wearing SriRam's FootWear"
-              className="hero-actor-image"
-            />
-          </div>
+      
+      {}
+      <div className="category-bubbles-bar">
+        <div className="container bubbles-flex">
+          {homeCategories.map((cat) => (
+            <button
+              key={cat.name}
+              onClick={() => navigateTo("shop", "All", cat.name)}
+              className="bubble-item"
+            >
+              <div className="bubble-icon-wrapper">
+                {cat.icon}
+              </div>
+              <span className="bubble-label">{cat.label}</span>
+            </button>
+          ))}
         </div>
-      </section>
+      </div>
 
-      <section id="brands-section" className="brand-showcase-section">
+      {}
+      <section className="home-carousel-section">
         <div className="container">
-          <h2 className="brand-section-title">Explore Global Brands</h2>
-          <div className="brand-grid">
-            {brands.map((brand) => (
-              <button
-                key={brand}
-                className="brand-card"
-                onClick={() => navigateTo("shop", brand)}
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
-              >
-                {brandLogos[brand]}
-                <span>{brand}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section" style={{ borderBottom: "1px solid var(--card-border)", padding: "60px 0" }}>
-        <div className="container">
-          <h2 className="brand-section-title" style={{ marginBottom: "32px" }}>Shop by Gender</h2>
           <div 
-            style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
-              gap: "30px" 
+            className="carousel-wrapper"
+            style={{
+              background: slides[currentSlide].bgColor
             }}
           >
-            {/* Men's Collection Card */}
-            <div 
-              className="shoe-card" 
-              onClick={() => navigateTo("shop", "All", "All", "Men")}
-              style={{
-                position: "relative",
-                height: "240px",
-                overflow: "hidden",
-                borderRadius: "var(--border-radius-lg)",
-                cursor: "pointer",
-                background: "linear-gradient(135deg, var(--accent-neon-glow) 0%, var(--bg-secondary) 100%)",
-                border: "1px solid var(--card-border)",
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "30px",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--accent-neon)";
-                e.currentTarget.style.boxShadow = "0 10px 25px var(--accent-neon-glow)";
-                e.currentTarget.style.transform = "translateY(-4px)";
-                const img = e.currentTarget.querySelector(".gender-card-img");
-                if (img) img.style.transform = "scale(1.1) rotate(-15deg)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--card-border)";
-                e.currentTarget.style.boxShadow = "none";
-                e.currentTarget.style.transform = "translateY(0)";
-                const img = e.currentTarget.querySelector(".gender-card-img");
-                if (img) img.style.transform = "scale(1) rotate(-10deg)";
-              }}
-            >
-              <div style={{ zIndex: 2 }}>
-                <h3 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "10px" }}>
-                  <MenIcon size={28} style={{ marginRight: 0 }} /> Men
-                </h3>
-                <p style={{ color: "var(--accent-neon)", fontWeight: "700", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Explore Collection <ArrowRight size={14} />
+            {}
+            <button className="carousel-arrow left" onClick={handlePrevSlide} aria-label="Previous Slide">
+              <ChevronLeft size={24} />
+            </button>
+            <button className="carousel-arrow right" onClick={handleNextSlide} aria-label="Next Slide">
+              <ChevronRight size={24} />
+            </button>
+
+            {}
+            <div className="carousel-slide-grid">
+              <div className="carousel-slide-content">
+                <span className="carousel-badge" style={{ color: slides[currentSlide].accent }}>DEAL OF THE DAY</span>
+                <h1 className="carousel-title">
+                  {slides[currentSlide].title}
+                </h1>
+                <p className="carousel-subtitle">
+                  {slides[currentSlide].subtitle}
                 </p>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => navigateTo("shop", "All", slides[currentSlide].category)}
+                  style={{
+                    background: `linear-gradient(135deg, ${slides[currentSlide].accent} 0%, #ffffff 250%)`,
+                    color: "#0b0c10",
+                    boxShadow: `0 4px 15px ${slides[currentSlide].accent}44`
+                  }}
+                >
+                  Shop Now <ArrowRight size={18} />
+                </button>
               </div>
-              <img 
-                src="/images/shoes/nike-air-max.png" 
-                alt="Men's Collection" 
-                className="gender-card-img"
-                style={{
-                  maxHeight: "140px",
-                  objectFit: "contain",
-                  transform: "rotate(-10deg)",
-                  transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                  filter: "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4))",
-                  zIndex: 1
-                }}
-              />
+
+              <div className="carousel-slide-image">
+                <div className="carousel-glow-behind" style={{ backgroundColor: slides[currentSlide].accent }}></div>
+                <img 
+                  src={slides[currentSlide].image} 
+                  alt={slides[currentSlide].title} 
+                  className="carousel-img-tag"
+                />
+              </div>
             </div>
 
-            {/* Women's Collection Card */}
-            <div 
-              className="shoe-card" 
-              onClick={() => navigateTo("shop", "All", "All", "Women")}
-              style={{
-                position: "relative",
-                height: "240px",
-                overflow: "hidden",
-                borderRadius: "var(--border-radius-lg)",
-                cursor: "pointer",
-                background: "linear-gradient(135deg, var(--accent-crimson-glow) 0%, var(--bg-secondary) 100%)",
-                border: "1px solid var(--card-border)",
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "30px",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--accent-crimson)";
-                e.currentTarget.style.boxShadow = "0 10px 25px var(--accent-crimson-glow)";
-                e.currentTarget.style.transform = "translateY(-4px)";
-                const img = e.currentTarget.querySelector(".gender-card-img");
-                if (img) img.style.transform = "scale(1.15) rotate(-5deg)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--card-border)";
-                e.currentTarget.style.boxShadow = "none";
-                e.currentTarget.style.transform = "translateY(0)";
-                const img = e.currentTarget.querySelector(".gender-card-img");
-                if (img) img.style.transform = "scale(1) rotate(-10deg)";
-              }}
-            >
-              <div style={{ zIndex: 2 }}>
-                <h3 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "10px" }}>
-                  <WomenIcon size={28} style={{ marginRight: 0 }} /> Women
-                </h3>
-                <p style={{ color: "var(--accent-crimson)", fontWeight: "700", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Explore Collection <ArrowRight size={14} />
-                </p>
-              </div>
-              <img 
-                src="/images/shoes/fila-disruptor.png" 
-                alt="Women's Collection" 
-                className="gender-card-img"
-                style={{
-                  maxHeight: "130px",
-                  objectFit: "contain",
-                  transform: "rotate(-10deg)",
-                  transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                  filter: "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4))",
-                  zIndex: 1
-                }}
-              />
+            {}
+            <div className="carousel-indicators">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`indicator-dot ${currentSlide === idx ? "active" : ""}`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="section">
-        <div className="container">
-          <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
-            <div>
-              <h2 className="section-title">
-                Featured <span>{activeTab === "Shoes" ? "Sneakers" : "Chappals"}</span>
-              </h2>
-              <p className="section-subtitle">Handpicked styles chosen just for you</p>
-            </div>
+      {}
 
-            {/* Separate Toggle Buttons */}
-            <div 
-              style={{ 
-                display: "flex", 
-                gap: "6px", 
-                background: "rgba(255, 255, 255, 0.03)", 
-                padding: "6px", 
-                borderRadius: "30px", 
-                border: "1px solid var(--card-border)" 
-              }}
-            >
-              <button 
-                onClick={() => setActiveTab("Shoes")}
-                style={{
-                  padding: "8px 22px",
-                  borderRadius: "20px",
-                  fontWeight: "700",
-                  fontSize: "0.85rem",
-                  backgroundColor: activeTab === "Shoes" ? "var(--accent-neon)" : "transparent",
-                  color: activeTab === "Shoes" ? "var(--bg-primary)" : "var(--text-muted)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                  boxShadow: activeTab === "Shoes" ? "0 2px 8px var(--accent-neon-glow)" : "none"
-                }}
-              >
-                Shoes
-              </button>
-              <button 
-                onClick={() => setActiveTab("Chappals")}
-                style={{
-                  padding: "8px 22px",
-                  borderRadius: "20px",
-                  fontWeight: "700",
-                  fontSize: "0.85rem",
-                  backgroundColor: activeTab === "Chappals" ? "var(--accent-neon)" : "transparent",
-                  color: activeTab === "Chappals" ? "var(--bg-primary)" : "var(--text-muted)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                  boxShadow: activeTab === "Chappals" ? "0 2px 8px var(--accent-neon-glow)" : "none"
-                }}
-              >
-                Chappals
+      {}
+      {(loading || shelfMobiles.length > 0) && (
+        <section className="section shelf-section">
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Trending <span>Mobiles</span></h2>
+                <p className="shelf-subtitle">Grab the latest smartphones from Apple, Samsung, and OnePlus</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Mobiles")}>
+                View All Mobiles <ArrowRight size={16} />
               </button>
             </div>
-
-            <a
-              href="#shop"
-              className="view-all-link"
-              onClick={(e) => {
-                e.preventDefault();
-                navigateTo("shop", "All", activeTab);
-              }}
-            >
-              View All {activeTab} <ArrowRight size={16} />
-            </a>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfMobiles.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
           </div>
+        </section>
+      )}
 
-          <div className="product-grid">
-            {displayItems.map((shoe) => (
-              <ShoeCard key={shoe.id} shoe={shoe} onOpenDetails={onOpenDetails} />
-            ))}
+      {}
+      {(loading || shelfLaptops.length > 0) && (
+        <section className="section shelf-section" style={{ background: "rgba(255, 255, 255, 0.01)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Premium <span>Laptops</span></h2>
+                <p className="shelf-subtitle">Power up with laptops from Apple, Dell, HP, and Lenovo</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Laptops")}>
+                View All Laptops <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfLaptops.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
+      {}
+      {(loading || shelfClothing.length > 0) && (
+        <section className="section shelf-section" style={{ background: "rgba(255, 255, 255, 0.01)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Fashion <span>Best Sellers</span></h2>
+                <p className="shelf-subtitle">Premium daily apparel from Zara, H&M, and Levi's</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Clothing")}>
+                View All Fashion <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfClothing.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
+      {}
+      {(loading || shelfAppliances.length > 0) && (
+        <section className="section shelf-section">
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Smart <span>Home Appliances</span></h2>
+                <p className="shelf-subtitle">Washing machines, TVs, AC units, and kitchen appliances</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Appliances")}>
+                View All Appliances <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfAppliances.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
-      <section className="container" style={{ marginBottom: "80px" }}>
+      {}
+      {(loading || shelfFurniture.length > 0) && (
+        <section className="section shelf-section" style={{ background: "rgba(255, 255, 255, 0.01)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Home & <span>Furniture</span></h2>
+                <p className="shelf-subtitle">Beds, bedsheets, study tables, and premium home decor</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Home & Furniture")}>
+                View All Furniture <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfFurniture.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {}
+      {(loading || shelfFootwear.length > 0) && (
+        <section className="section shelf-section">
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Footwear <span>Bargains</span></h2>
+                <p className="shelf-subtitle">Handpicked sports sneakers, daily trainers, and slides</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Footwear")}>
+                View All Footwear <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfFootwear.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {}
+      {(loading || shelfWatches.length > 0) && (
+        <section className="section shelf-section" style={{ background: "rgba(255, 255, 255, 0.01)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Premium <span>Watches</span></h2>
+                <p className="shelf-subtitle">Explore smartwatches, classic analog, and digital timepieces</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Watches")}>
+                View All Watches <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfWatches.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {}
+      {(loading || shelfGrocery.length > 0) && (
+        <section className="section shelf-section">
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Daily <span>Grocery Staples</span></h2>
+                <p className="shelf-subtitle">Stock up on premium staples, dairy products, beverages and snacks</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Grocery")}>
+                View All Grocery <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfGrocery.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {}
+      {(loading || shelfEarphones.length > 0) && (
+        <section className="section shelf-section" style={{ background: "rgba(255, 255, 255, 0.01)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Trending <span>Earphones & Audio</span></h2>
+                <p className="shelf-subtitle">Immersive wireless earbuds, over-ear headphones, and neckbands</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Earphones")}>
+                View All Earphones <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfEarphones.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {}
+      {(loading || shelfToys.length > 0) && (
+        <section className="section shelf-section">
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Kids <span>Toys & Building Blocks</span></h2>
+                <p className="shelf-subtitle">Inspire creative play with building blocks, dolls, cars, and action games</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Toys")}>
+                View All Toys <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfToys.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {}
+      {(loading || shelfPerfumes.length > 0) && (
+        <section className="section shelf-section" style={{ background: "rgba(255, 255, 255, 0.01)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
+          <div className="container">
+            <div className="shelf-header">
+              <div>
+                <h2 className="shelf-title">Luxury <span>Perfumes & Fragrances</span></h2>
+                <p className="shelf-subtitle">Discover premium fragrances from Dior, Chanel, Versace, and Gucci</p>
+              </div>
+              <button className="view-all-link" onClick={() => navigateTo("shop", "All", "Perfumes")}>
+                View All Perfumes <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="product-grid">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="product-skeleton-card">
+                    <div className="skeleton-image"></div>
+                    <div className="skeleton-brand"></div>
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-row">
+                      <div className="skeleton-price"></div>
+                      <div className="skeleton-button"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                shelfPerfumes.map((item) => (
+                  <ProductCard key={item.id} product={item} onOpenDetails={onOpenDetails} />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {}
+      <section className="container" style={{ margin: "60px auto 80px" }}>
         <div className="promo-banner">
           <div className="promo-glow"></div>
           <div className="promo-grid">
             <div className="promo-content">
               <h3>
                 Get <span>20% OFF</span> Your <br />
-                First Order on Shoes & Chappals
+                First Order on E-Cart
               </h3>
               <p>
-                Sign up for our newsletter or make your first order to unlock exclusive benefits, free shipping, and limited release access on both premium sneakers and slides.
+                Sign up for our newsletter or make your first order to unlock exclusive benefits, free shipping, and limited release access on all premium items in our store.
               </p>
               <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
                 <span
@@ -378,21 +810,21 @@ const Home = ({ onOpenDetails }) => {
                     color: "var(--accent-neon)",
                   }}
                 >
-                  Sriram040605
+                  ECART2026
                 </span>
                 <button 
                   className="btn-secondary" 
                   style={{ padding: "12px 24px" }} 
                   onClick={() => navigateTo("shop")}
                 >
-                  Claim Discount on Shoes & Chappals
+                  Claim Discount on E-Cart
                 </button>
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative", height: "220px", width: "100%" }}>
               <img
-                src="/images/shoes/nike-air-max.png"
-                alt="Promo Shoe"
+                src="/images/mobiles/iphone15.png"
+                alt="Promo Phone"
                 className="promo-image animated-promo-shoe"
                 style={{
                   maxHeight: "160px",
@@ -401,8 +833,8 @@ const Home = ({ onOpenDetails }) => {
                 }}
               />
               <img
-                src="/images/shoes/nike-slide.png"
-                alt="Promo Slide"
+                src="/images/shoes/nike-air-max.png"
+                alt="Promo Shoe"
                 className="promo-image animated-promo-slide"
                 style={{
                   maxHeight: "140px",

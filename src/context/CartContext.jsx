@@ -24,7 +24,7 @@ export const CartProvider = ({ children }) => {
 
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("sriram_theme");
-    return savedTheme ? savedTheme : "dark";
+    return savedTheme ? savedTheme : "light";
   });
 
   useEffect(() => {

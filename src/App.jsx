@@ -9,8 +9,9 @@ import { Star, X, ShoppingCart, Heart } from "lucide-react";
 import AIChat from "./components/AIChat";
 import { shoes } from "./data/data";
 
-const getColorFilter = (color) => {
+const getColorFilter = (color, category) => {
   if (!color) return 'none';
+  if (category === "Mobiles" || category === "Appliances" || category === "Watches" || category === "Grocery" || category === "Earphones" || category === "Toys" || category === "Perfumes") return 'none';
   const lower = color.toLowerCase();
   
   const filterMap = {
@@ -54,16 +55,10 @@ function App() {
   const [startX, setStartX] = useState(0);
   const [startRotation, setStartRotation] = useState(0);
 
-  const relatedShoes = selectedProduct
+  const relatedProducts = selectedProduct
     ? shoes
-        .filter((s) => s.id !== selectedProduct.id && s.brand === selectedProduct.brand && s.category !== "Chappals")
-        .slice(0, 3)
-    : [];
-
-  const relatedChappals = selectedProduct
-    ? shoes
-        .filter((s) => s.id !== selectedProduct.id && s.brand === selectedProduct.brand && s.category === "Chappals")
-        .slice(0, 3)
+        .filter((p) => p.id !== selectedProduct.id && p.category === selectedProduct.category)
+        .slice(0, 4)
     : [];
 
   const handleOpenDetails = (product) => {
@@ -137,7 +132,6 @@ function App() {
     if (!selectedProduct) return;
     addToCart(selectedProduct, selectedSize, selectedColor);
 
-    
     setAddedMessage(true);
     setTimeout(() => {
       setAddedMessage(false);
@@ -145,7 +139,6 @@ function App() {
     }, 1500);
   };
 
-  
   const renderPage = () => {
     switch (activePage) {
       case "home":
@@ -159,13 +152,31 @@ function App() {
     }
   };
 
+  const supports360 = selectedProduct && 
+    selectedProduct.category === "Footwear" && 
+    selectedProduct.images && 
+    selectedProduct.images.length > 1 && 
+    !selectedProduct.name.toLowerCase().includes("slide");
+
+  const getSizeLabel = () => {
+    if (!selectedProduct) return "";
+    if (selectedProduct.category === "Mobiles") return "Select Storage Capacity";
+    if (selectedProduct.category === "Appliances") return "Select Specification";
+    if (selectedProduct.category === "Clothing") return "Select Size";
+    if (selectedProduct.category === "Watches") return "Select Dial Size";
+    if (selectedProduct.category === "Grocery") return "Select Pack Size";
+    if (selectedProduct.category === "Earphones") return "Select Option";
+    if (selectedProduct.category === "Toys") return "Select Edition";
+    if (selectedProduct.category === "Perfumes") return "Select Volume / Size";
+    return "Select US Size";
+  };
+
   return (
     <div className="app-container">
       <Header />
       <main className="main-content">{renderPage()}</main>
       <Footer />
 
-      
       {selectedProduct && (
         <div className="modal-overlay" onClick={handleCloseDetails}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -176,22 +187,24 @@ function App() {
             <div className="detail-grid">
               
               <div className="detail-img-box">
-                <div className="view-mode-tabs">
-                  <button
-                    className={`view-mode-tab ${!is360Mode ? "active" : ""}`}
-                    onClick={() => setIs360Mode(false)}
-                  >
-                    Gallery
-                  </button>
-                  <button
-                    className={`view-mode-tab ${is360Mode ? "active" : ""}`}
-                    onClick={() => setIs360Mode(true)}
-                  >
-                    360° View
-                  </button>
-                </div>
+                {supports360 && (
+                  <div className="view-mode-tabs">
+                    <button
+                      className={`view-mode-tab ${!is360Mode ? "active" : ""}`}
+                      onClick={() => setIs360Mode(false)}
+                    >
+                      Gallery
+                    </button>
+                    <button
+                      className={`view-mode-tab ${is360Mode ? "active" : ""}`}
+                      onClick={() => setIs360Mode(true)}
+                    >
+                      360° View
+                    </button>
+                  </div>
+                )}
 
-                {is360Mode ? (
+                {is360Mode && supports360 ? (
                   <>
                     <div
                       className={`detail-img-viewport ${isDragging ? "grabbing" : "grab"}`}
@@ -207,8 +220,8 @@ function App() {
                         style={{
                           transform: get360ImageAndStyle(rotation).transform,
                           transformStyle: "preserve-3d",
-                          filter: getColorFilter(selectedColor) !== 'none'
-                            ? `${getColorFilter(selectedColor)} drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4))`
+                          filter: getColorFilter(selectedColor, selectedProduct.category) !== 'none'
+                            ? `${getColorFilter(selectedColor, selectedProduct.category)} drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4))`
                             : 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4))'
                         }}
                         draggable="false"
@@ -238,13 +251,13 @@ function App() {
                         alt={selectedProduct.name}
                         className="detail-img"
                         style={{
-                          filter: getColorFilter(selectedColor) !== 'none'
-                            ? `${getColorFilter(selectedColor)} drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4))`
+                          filter: getColorFilter(selectedColor, selectedProduct.category) !== 'none'
+                            ? `${getColorFilter(selectedColor, selectedProduct.category)} drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4))`
                             : 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4))'
                         }}
                       />
                     </div>
-                    {selectedProduct.images && selectedProduct.images.length > 0 && (
+                    {selectedProduct.images && selectedProduct.images.length > 0 && selectedProduct.category === "Footwear" && (
                       <div className="detail-gallery-row">
                         {selectedProduct.images.map((imgUrl, idx) => (
                           <button
@@ -257,8 +270,8 @@ function App() {
                               src={imgUrl}
                               alt={`${selectedProduct.name} angle ${idx + 1}`}
                               style={{
-                                filter: getColorFilter(selectedColor) !== 'none'
-                                  ? getColorFilter(selectedColor)
+                                filter: getColorFilter(selectedColor, selectedProduct.category) !== 'none'
+                                  ? getColorFilter(selectedColor, selectedProduct.category)
                                   : 'none'
                               }}
                             />
@@ -340,47 +353,51 @@ function App() {
                 <p className="detail-description">{selectedProduct.description}</p>
 
                 
-                <div>
-                  <h4 className="selector-title">Select US Size</h4>
-                  <div className="size-selector-grid">
-                    {selectedProduct.sizes.map((size) => (
-                      <button
-                        key={size}
-                        className={`size-pill ${selectedSize === size ? "selected" : ""}`}
-                        onClick={() => setSelectedSize(size)}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
+                  <div>
+                    <h4 className="selector-title">{getSizeLabel()}</h4>
+                    <div className="size-selector-grid">
+                      {selectedProduct.sizes.map((size) => (
+                        <button
+                          key={size}
+                          className={`size-pill ${selectedSize === size ? "selected" : ""}`}
+                          onClick={() => setSelectedSize(size)}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 
-                <div>
-                  <h4 className="selector-title">Select Color</h4>
-                  <div className="color-selector-grid">
-                    {selectedProduct.colors.map((color) => (
-                      <button
-                        key={color}
-                        className={`color-pill ${selectedColor === color ? "selected" : ""}`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setSelectedColor(color)}
-                        aria-label={`Color ${color}`}
-                      >
-                        {selectedColor === color && (
-                          <span
-                            style={{
-                              width: "8px",
-                              height: "8px",
-                              borderRadius: "50%",
-                              backgroundColor: color === "#ffffff" ? "#000" : "#fff",
-                            }}
-                          ></span>
-                        )}
-                      </button>
-                    ))}
+                {selectedProduct.colors && selectedProduct.colors.length > 0 && (
+                  <div>
+                    <h4 className="selector-title">Select Color</h4>
+                    <div className="color-selector-grid">
+                      {selectedProduct.colors.map((color) => (
+                        <button
+                          key={color}
+                          className={`color-pill ${selectedColor === color ? "selected" : ""}`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setSelectedColor(color)}
+                          aria-label={`Color ${color}`}
+                        >
+                          {selectedColor === color && (
+                            <span
+                              style={{
+                                width: "8px",
+                                height: "8px",
+                                borderRadius: "50%",
+                                backgroundColor: color === "#ffffff" ? "#000" : "#fff",
+                              }}
+                            ></span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 
                 <button className="btn-add-to-cart-modal" onClick={handleAddToCartClick} disabled={addedMessage}>
@@ -395,97 +412,46 @@ function App() {
               </div>
             </div>
 
-            {(relatedShoes.length > 0 || relatedChappals.length > 0) && (
+            {relatedProducts.length > 0 && (
               <div style={{ padding: "0 40px 40px 40px", borderTop: "1px solid var(--card-border)" }}>
-                
-                {/* Related Sneakers */}
-                {relatedShoes.length > 0 && (
-                  <div style={{ marginBottom: "24px" }}>
-                    <h3 style={{ fontSize: "1.1rem", fontWeight: "700", margin: "24px 0 16px 0", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      {selectedProduct.category === "Chappals" ? "Matching Sneakers" : "Related Sneakers"}
-                    </h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "20px" }}>
-                      {relatedShoes.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleOpenDetails(item)}
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.02)",
-                            border: "1px solid var(--card-border)",
-                            borderRadius: "8px",
-                            padding: "16px",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            textAlign: "center"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "var(--accent-neon)";
-                            e.currentTarget.style.transform = "translateY(-4px)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "var(--card-border)";
-                            e.currentTarget.style.transform = "translateY(0)";
-                          }}
-                        >
-                          <div style={{ height: "100px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px", width: "100%" }}>
-                            <img src={item.image} alt={item.name} style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }} />
-                          </div>
-                          <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-muted)", fontWeight: "700", letterSpacing: "0.05em" }}>{item.brand}</span>
-                          <h4 style={{ fontSize: "0.9rem", fontWeight: "600", margin: "4px 0 8px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }} title={item.name}>{item.name}</h4>
-                          <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--accent-neon)" }}>₹{item.price.toLocaleString('en-IN')}</span>
-                        </div>
-                      ))}
+                <h3 style={{ fontSize: "1.1rem", fontWeight: "700", margin: "24px 0 16px 0", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Related Items
+                </h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "20px" }}>
+                  {relatedProducts.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleOpenDetails(item)}
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.02)",
+                        border: "1px solid var(--card-border)",
+                        borderRadius: "8px",
+                        padding: "16px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        textAlign: "center"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = "var(--accent-neon)";
+                        e.currentTarget.style.transform = "translateY(-4px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "var(--card-border)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <div style={{ height: "100px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px", width: "100%" }}>
+                        <img src={item.image} alt={item.name} style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }} />
+                      </div>
+                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-muted)", fontWeight: "700", letterSpacing: "0.05em" }}>{item.brand}</span>
+                      <h4 style={{ fontSize: "0.9rem", fontWeight: "600", margin: "4px 0 8px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }} title={item.name}>{item.name}</h4>
+                      <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--accent-neon)" }}>₹{item.price.toLocaleString('en-IN')}</span>
                     </div>
-                  </div>
-                )}
-
-                {/* Related Chappals */}
-                {relatedChappals.length > 0 && (
-                  <div>
-                    <h3 style={{ fontSize: "1.1rem", fontWeight: "700", margin: "24px 0 16px 0", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      {selectedProduct.category === "Chappals" ? "Related Slides & Sandals" : "Matching Slides & Sandals"}
-                    </h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "20px" }}>
-                      {relatedChappals.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleOpenDetails(item)}
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.02)",
-                            border: "1px solid var(--card-border)",
-                            borderRadius: "8px",
-                            padding: "16px",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            textAlign: "center"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "var(--accent-neon)";
-                            e.currentTarget.style.transform = "translateY(-4px)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "var(--card-border)";
-                            e.currentTarget.style.transform = "translateY(0)";
-                          }}
-                        >
-                          <div style={{ height: "100px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px", width: "100%" }}>
-                            <img src={item.image} alt={item.name} style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", filter: getColorFilter(item.colors[0]) !== 'none' ? getColorFilter(item.colors[0]) : 'none' }} />
-                          </div>
-                          <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-muted)", fontWeight: "700", letterSpacing: "0.05em" }}>{item.brand}</span>
-                          <h4 style={{ fontSize: "0.9rem", fontWeight: "600", margin: "4px 0 8px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }} title={item.name}>{item.name}</h4>
-                          <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--accent-neon)" }}>₹{item.price.toLocaleString('en-IN')}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+                  ))}
+                </div>
               </div>
             )}
           </div>

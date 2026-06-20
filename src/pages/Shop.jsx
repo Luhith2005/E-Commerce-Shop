@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useCart } from "../context/CartContext";
-import { shoes } from "../data/data";
-import ShoeCard from "../components/ShoeCard";
+import { fetchProducts } from "../services/api";
+import ProductCard from "../components/ProductCard";
 import Filters from "../components/Filters";
 
 const Shop = ({ onOpenDetails }) => {
@@ -11,20 +11,69 @@ const Shop = ({ onOpenDetails }) => {
     selectedCategoryFilter,
     setSelectedCategoryFilter,
     selectedGenderFilter,
-    setSelectedGenderFilter
+    setSelectedGenderFilter,
+    searchQuery,
+    setSearchQuery
   } = useCart();
-
-  const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedBrands, setSelectedBrands] = useState([]);
+  
   const [mainCategory, setMainCategory] = useState(() => {
-    if (selectedCategoryFilter === "Chappals") return "Chappals";
-    if (selectedCategoryFilter !== "All" && selectedCategoryFilter) return "Shoes";
+    if (selectedCategoryFilter && selectedCategoryFilter !== "All") {
+      const cat = selectedCategoryFilter;
+      if (["Mobiles", "Laptops", "Clothing", "Appliances", "Footwear", "Home & Furniture", "Watches", "Grocery", "Earphones", "Toys", "Perfumes"].includes(cat)) {
+        return cat;
+      }
+      if (["Running", "Lifestyle", "Basketball", "Chappals"].includes(cat)) {
+        return "Footwear";
+      }
+      if (["Shirts", "Pants", "Skirts", "Dresses", "Sarees", "Night Dresses"].includes(cat)) {
+        return "Clothing";
+      }
+      if (["Thin & Light", "Business", "Gaming"].includes(cat)) {
+        return "Laptops";
+      }
+      if (["Washing Machines", "AC", "Coolers", "Fans", "TV", "Stoves", "Refrigerator", "Microwave"].includes(cat)) {
+        return "Appliances";
+      }
+      if (["Beds", "Bedsheets", "Tables", "Sofa"].includes(cat)) {
+        return "Home & Furniture";
+      }
+      if (["Smartwatches", "Analog", "Digital"].includes(cat)) {
+        return "Watches";
+      }
+      if (["Staples", "Beverages", "Snacks", "Dairy"].includes(cat)) {
+        return "Grocery";
+      }
+      if (["Wireless Earbuds", "Wireless Neckbands", "Over-Ear Headphones"].includes(cat)) {
+        return "Earphones";
+      }
+      if (["Building Blocks", "Diecast Cars", "Dolls", "Action Games"].includes(cat)) {
+        return "Toys";
+      }
+    }
     return "All";
   });
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedGender, setSelectedGender] = useState("All");
-  const [maxPrice, setMaxPrice] = useState(20000);
+  const [maxPrice, setMaxPrice] = useState(250000);
   const [sortBy, setSortBy] = useState("default");
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchProducts().then((data) => {
+      if (active) {
+        setProducts(data);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedBrandFilter && selectedBrandFilter !== "All") {
@@ -32,12 +81,42 @@ const Shop = ({ onOpenDetails }) => {
       setSelectedBrandFilter("All");
     }
     if (selectedCategoryFilter && selectedCategoryFilter !== "All") {
-      if (selectedCategoryFilter === "Chappals") {
-        setMainCategory("Chappals");
-        setSelectedCategory("Chappals");
+      const cat = selectedCategoryFilter;
+      if (["Mobiles", "Laptops", "Clothing", "Appliances", "Footwear", "Home & Furniture", "Watches", "Grocery", "Earphones", "Toys", "Perfumes"].includes(cat)) {
+        setMainCategory(cat);
+        setSelectedCategory("All");
       } else {
-        setMainCategory("Shoes");
-        setSelectedCategory(selectedCategoryFilter);
+        if (["Running", "Lifestyle", "Basketball", "Chappals"].includes(cat)) {
+          setMainCategory("Footwear");
+          setSelectedCategory(cat);
+        } else if (["Shirts", "Pants", "Skirts", "Dresses", "Sarees", "Night Dresses"].includes(cat)) {
+          setMainCategory("Clothing");
+          setSelectedCategory(cat);
+        } else if (["Thin & Light", "Business", "Gaming"].includes(cat)) {
+          setMainCategory("Laptops");
+          setSelectedCategory(cat);
+        } else if (["Washing Machines", "AC", "Coolers", "Fans", "TV", "Stoves", "Refrigerator", "Microwave"].includes(cat)) {
+          setMainCategory("Appliances");
+          setSelectedCategory(cat);
+        } else if (["Beds", "Bedsheets", "Tables", "Sofa"].includes(cat)) {
+          setMainCategory("Home & Furniture");
+          setSelectedCategory(cat);
+        } else if (["Smartwatches", "Analog", "Digital"].includes(cat)) {
+          setMainCategory("Watches");
+          setSelectedCategory(cat);
+        } else if (["Staples", "Beverages", "Snacks", "Dairy"].includes(cat)) {
+          setMainCategory("Grocery");
+          setSelectedCategory(cat);
+        } else if (["Wireless Earbuds", "Wireless Neckbands", "Over-Ear Headphones"].includes(cat)) {
+          setMainCategory("Earphones");
+          setSelectedCategory(cat);
+        } else if (["Building Blocks", "Diecast Cars", "Dolls", "Action Games"].includes(cat)) {
+          setMainCategory("Toys");
+          setSelectedCategory(cat);
+        } else if (["Men", "Women", "Unisex"].includes(cat) && mainCategory === "Perfumes") {
+          setMainCategory("Perfumes");
+          setSelectedCategory(cat);
+        }
       }
       setSelectedCategoryFilter("All");
     }
@@ -47,41 +126,73 @@ const Shop = ({ onOpenDetails }) => {
     }
   }, [selectedBrandFilter, setSelectedBrandFilter, selectedCategoryFilter, setSelectedCategoryFilter, selectedGenderFilter, setSelectedGenderFilter]);
 
-  const filteredShoes = useMemo(() => {
-    return shoes
-      .filter((shoe) => {
+  
+  useEffect(() => {
+    if (mainCategory === "All") {
+      setMaxPrice(250000);
+    } else if (mainCategory === "Mobiles") {
+      setMaxPrice(150000);
+    } else if (mainCategory === "Laptops") {
+      setMaxPrice(250000);
+    } else if (mainCategory === "Appliances") {
+      setMaxPrice(150000);
+    } else if (mainCategory === "Home & Furniture") {
+      setMaxPrice(50000);
+    } else if (mainCategory === "Footwear") {
+      setMaxPrice(20000);
+    } else if (mainCategory === "Clothing") {
+      setMaxPrice(5000);
+    } else if (mainCategory === "Watches") {
+      setMaxPrice(100000);
+    } else if (mainCategory === "Grocery") {
+      setMaxPrice(2000);
+    } else if (mainCategory === "Earphones") {
+      setMaxPrice(50000);
+    } else if (mainCategory === "Toys") {
+      setMaxPrice(10000);
+    } else if (mainCategory === "Perfumes") {
+      setMaxPrice(20000);
+    }
+    setSelectedCategory("All");
+    setSelectedBrands([]);
+  }, [mainCategory]);
+
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter((prod) => {
         const matchesSearch =
-          shoe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shoe.brand.toLowerCase().includes(searchQuery.toLowerCase());
+          prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prod.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prod.category.toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesBrand =
-          selectedBrands.length === 0 || selectedBrands.includes(shoe.brand);
+          selectedBrands.length === 0 || selectedBrands.includes(prod.brand);
 
-        // Main Category Filter
+        
         let matchesMainCategory = true;
-        if (mainCategory === "Shoes") {
-          matchesMainCategory = shoe.category !== "Chappals";
-        } else if (mainCategory === "Chappals") {
-          matchesMainCategory = shoe.category === "Chappals";
+        if (mainCategory !== "All") {
+          matchesMainCategory = prod.category === mainCategory;
         }
 
-        // Subcategory Filter
+        
         let matchesSubcategory = true;
         if (selectedCategory !== "All") {
-          matchesSubcategory = shoe.category === selectedCategory;
+          matchesSubcategory = prod.type === selectedCategory;
         }
 
-        // Gender Filter
+        
         let matchesGender = true;
         if (selectedGender !== "All") {
-          if (selectedGender === "Unisex") {
-            matchesGender = shoe.gender === "Unisex";
-          } else {
-            matchesGender = shoe.gender === selectedGender || shoe.gender === "Unisex";
+          if (prod.gender) {
+            if (selectedGender === "Unisex") {
+              matchesGender = prod.gender === "Unisex";
+            } else {
+              matchesGender = prod.gender === selectedGender || prod.gender === "Unisex";
+            }
           }
         }
 
-        const matchesPrice = shoe.price <= maxPrice;
+        const matchesPrice = prod.price <= maxPrice;
 
         return matchesSearch && matchesBrand && matchesMainCategory && matchesSubcategory && matchesGender && matchesPrice;
       })
@@ -100,7 +211,7 @@ const Shop = ({ onOpenDetails }) => {
     setMainCategory("All");
     setSelectedCategory("All");
     setSelectedGender("All");
-    setMaxPrice(20000);
+    setMaxPrice(150000);
     setSortBy("default");
   };
 
@@ -111,11 +222,11 @@ const Shop = ({ onOpenDetails }) => {
           Shop <span style={{ color: "var(--accent-neon)" }}>Collection</span>
         </h1>
         <p style={{ color: "var(--text-muted)", marginTop: "4px" }}>
-          Browse our ultimate inventory and filter by your preference
+          Browse our premium catalog and filter by your preference
         </p>
       </div>
 
-      {/* Separate Category Tabs for Shoes & Chappals */}
+      {}
       <div 
         className="main-category-tabs" 
         style={{ 
@@ -141,8 +252,59 @@ const Shop = ({ onOpenDetails }) => {
             )
           },
           {
-            id: "Shoes",
-            label: "Shoes Collection",
+            id: "Mobiles",
+            label: "Mobiles",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                <line x1="12" y1="18" x2="12.01" y2="18" />
+              </svg>
+            )
+          },
+          {
+            id: "Laptops",
+            label: "Laptops",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="2" y1="20" x2="22" y2="20" />
+                <line x1="12" y1="20" x2="12.01" y2="20" />
+              </svg>
+            )
+          },
+          {
+            id: "Clothing",
+            label: "Clothing",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l1.08 5.4a2 2 0 0 0 1.97 1.61H7v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-8h1.67a2 2 0 0 0 1.97-1.61l1.08-5.4a2 2 0 0 0-1.34-2.23z" />
+              </svg>
+            )
+          },
+          {
+            id: "Appliances",
+            label: "Appliances",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
+                <circle cx="12" cy="16" r="2" />
+              </svg>
+            )
+          },
+          {
+            id: "Home & Furniture",
+            label: "Home & Furniture",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            )
+          },
+          {
+            id: "Footwear",
+            label: "Footwear",
             icon: (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 17h11.5a3.5 3.5 0 0 0 3.3-2.3l1.9-5.1A1.5 1.5 0 0 0 18.3 8H12V5.5A1.5 1.5 0 0 0 10.5 4h-1A1.5 1.5 0 0 0 8 5.5V8H4.5A1.5 1.5 0 0 0 3 9.5v7.5z" />
@@ -151,13 +313,57 @@ const Shop = ({ onOpenDetails }) => {
             )
           },
           {
-            id: "Chappals",
-            label: "Chappals & Slides",
+            id: "Watches",
+            label: "Watches",
             icon: (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 18c0 1.5 2 2.5 5 2.5s8-1 10-3c2-2 2-6 .5-7.5S11 8.5 8 9.5c-3 1-4 3.5-4 5.5z" />
-                <path d="M12 10.5c1-1.5 3.5-2 5-.5" />
-                <path d="M9 11.5c1.5-2 4.5-2.5 6-.5" />
+                <circle cx="12" cy="12" r="6" />
+                <polyline points="12 10 12 12 13 13" />
+                <path d="m16.13 5.66-.46-2.92a2 2 0 0 0-1.96-1.69H10.3a2 2 0 0 0-1.96 1.7l-.46 2.92M8.13 18.23l.46 2.92a2 2 0 0 0 1.96 1.69h3.4a2 2 0 0 0 1.96-1.7l.46-2.92" />
+              </svg>
+            )
+          },
+          {
+            id: "Grocery",
+            label: "Grocery",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+              </svg>
+            )
+          },
+          {
+            id: "Earphones",
+            label: "Earphones",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+              </svg>
+            )
+          },
+          {
+            id: "Toys",
+            label: "Toys",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <circle cx="15" cy="15" r="2"/>
+              </svg>
+            )
+          },
+          {
+            id: "Perfumes",
+            label: "Perfumes",
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 18h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+                <path d="M9 6V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+                <path d="M12 10v4" />
+                <path d="M10 12h4" />
               </svg>
             )
           }
@@ -166,18 +372,7 @@ const Shop = ({ onOpenDetails }) => {
           return (
             <button
               key={tab.id}
-              onClick={() => {
-                setMainCategory(tab.id);
-                if (tab.id === "Chappals") {
-                  setSelectedCategory("Chappals");
-                } else if (tab.id === "Shoes") {
-                  if (selectedCategory === "Chappals") {
-                    setSelectedCategory("All");
-                  }
-                } else {
-                  setSelectedCategory("All");
-                }
-              }}
+              onClick={() => setMainCategory(tab.id)}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -235,7 +430,7 @@ const Shop = ({ onOpenDetails }) => {
         <div className="shop-products-section">
           <div className="shop-controls">
             <span className="results-count">
-              Showing {filteredShoes.length} of {shoes.length} Results
+              Showing {filteredProducts.length} of {products.length} Results
             </span>
 
             <div className="sort-wrapper">
@@ -255,10 +450,24 @@ const Shop = ({ onOpenDetails }) => {
             </div>
           </div>
 
-          {filteredShoes.length > 0 ? (
+          {loading ? (
+            <div className="product-skeleton-grid">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="product-skeleton-card">
+                  <div className="skeleton-image"></div>
+                  <div className="skeleton-brand"></div>
+                  <div className="skeleton-title"></div>
+                  <div className="skeleton-row">
+                    <div className="skeleton-price"></div>
+                    <div className="skeleton-button"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="product-grid">
-              {filteredShoes.map((shoe) => (
-                <ShoeCard key={shoe.id} shoe={shoe} onOpenDetails={onOpenDetails} />
+              {filteredProducts.map((prod) => (
+                <ProductCard key={prod.id} product={prod} onOpenDetails={onOpenDetails} />
               ))}
             </div>
           ) : (

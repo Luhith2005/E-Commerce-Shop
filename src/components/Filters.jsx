@@ -1,7 +1,52 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Search } from "lucide-react";
-import { brands, categories } from "../data/data";
+import { brands as allBrands } from "../data/data";
 import { MenIcon, WomenIcon } from "./GenderIcons";
+
+const categoryBrands = {
+  All: allBrands,
+  Mobiles: ["Apple", "Samsung", "OnePlus", "Xiaomi", "Google", "Nothing"],
+  Laptops: ["Apple", "Dell", "HP", "Lenovo", "ASUS"],
+  Clothing: ["U.S. Polo Assn.", "Levi's", "Roadster", "H&M", "Zara", "Saara", "Divastri"],
+  Appliances: ["LG", "Voltas", "Symphony", "Bajaj", "Sony", "Prestige", "Whirlpool", "Orient", "Crompton", "Philips", "Usha", "Daikin", "Havells", "Bosch", "IFB", "Lloyd", "Atomberg"],
+  Footwear: ["Nike", "Adidas", "Puma", "Jordan", "Reebok", "Under Armour", "Converse", "Vans", "New Balance", "Asics", "Fila", "Skechers"],
+  "Home & Furniture": ["Sleepwell", "Urban Ladder", "Bombay Dyeing", "Spaces", "IKEA"],
+  Watches: ["Apple", "Samsung", "Fossil", "Casio", "Titan", "Noise"],
+  Grocery: ["Tata", "Fortune", "Nestle", "Amul", "Cadbury", "Bru"],
+  Earphones: ["Apple", "Sony", "OnePlus", "boAt", "JBL"],
+  Toys: ["LEGO", "Hot Wheels", "Barbie", "Nerf", "Funko"],
+  Perfumes: ["Chanel", "Dior", "Versace", "Gucci", "Fogg"]
+};
+
+const categorySubcategories = {
+  All: [],
+  Mobiles: ["All", "Smartphones"],
+  Laptops: ["All", "Thin & Light", "Business", "Gaming"],
+  Clothing: ["All", "Shirts", "Pants", "Skirts", "Dresses", "Sarees", "Night Dresses"],
+  Appliances: ["All", "Washing Machines", "AC", "Coolers", "Fans", "TV", "Stoves", "Refrigerator", "Microwave"],
+  Footwear: ["All", "Running", "Lifestyle", "Basketball", "Chappals"],
+  "Home & Furniture": ["All", "Beds", "Bedsheets", "Tables", "Sofa"],
+  Watches: ["All", "Smartwatches", "Analog", "Digital"],
+  Grocery: ["All", "Staples", "Beverages", "Snacks", "Dairy"],
+  Earphones: ["All", "Wireless Earbuds", "Wireless Neckbands", "Over-Ear Headphones"],
+  Toys: ["All", "Building Blocks", "Diecast Cars", "Dolls", "Action Games"],
+  Perfumes: ["All", "Men", "Women", "Unisex"]
+};
+
+const priceRanges = {
+  All: { min: 500, max: 250000, step: 1000 },
+  Mobiles: { min: 10000, max: 150000, step: 5000 },
+  Laptops: { min: 20000, max: 250000, step: 5000 },
+  Clothing: { min: 500, max: 5000, step: 100 },
+  Appliances: { min: 1000, max: 150000, step: 1000 },
+  "Home & Furniture": { min: 500, max: 50000, step: 500 },
+  Footwear: { min: 1000, max: 20000, step: 500 },
+  Watches: { min: 1000, max: 100000, step: 1000 },
+  Grocery: { min: 50, max: 2000, step: 50 },
+  Earphones: { min: 500, max: 50000, step: 500 },
+  Toys: { min: 200, max: 10000, step: 100 },
+  Perfumes: { min: 200, max: 20000, step: 200 }
+};
 
 const Filters = ({
   searchQuery,
@@ -18,6 +63,19 @@ const Filters = ({
   setMaxPrice,
   onClear,
 }) => {
+  const activeBrands = categoryBrands[mainCategory] || allBrands;
+  const activeSubcats = categorySubcategories[mainCategory] || [];
+  const range = priceRanges[mainCategory] || priceRanges.All;
+
+  
+  useEffect(() => {
+    if (maxPrice > range.max) {
+      setMaxPrice(range.max);
+    } else if (maxPrice < range.min) {
+      setMaxPrice(range.min);
+    }
+  }, [mainCategory]);
+
   const handleBrandChange = (brand) => {
     setSelectedBrands((prev) => {
       if (prev.includes(brand)) {
@@ -27,6 +85,8 @@ const Filters = ({
       }
     });
   };
+
+  const showGender = mainCategory === "All" || mainCategory === "Clothing" || mainCategory === "Footwear";
 
   return (
     <aside className="filters-sidebar">
@@ -46,7 +106,7 @@ const Filters = ({
           <input
             type="text"
             className="search-input"
-            placeholder={mainCategory === "Chappals" ? "Search chappals..." : "Search shoes..."}
+            placeholder={`Search in ${mainCategory === "All" ? "E-Cart" : mainCategory}...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -57,7 +117,7 @@ const Filters = ({
       <div className="filter-group">
         <h4 className="filter-group-title">Brands</h4>
         <div className="brand-list">
-          {brands.map((brand) => (
+          {activeBrands.map((brand) => (
             <label key={brand} className="filter-label">
               <input
                 type="checkbox"
@@ -72,90 +132,47 @@ const Filters = ({
       </div>
 
       
-      <div className="filter-group">
-        <h4 className="filter-group-title">Product Type</h4>
-        <div className="category-list" style={{ display: "flex", gap: "8px", flexDirection: "row", flexWrap: "wrap" }}>
-          {[
-            { id: "All", label: "All Items" },
-            { id: "Shoes", label: "Shoes" },
-            { id: "Chappals", label: "Chappals" }
-          ].map((type) => (
-            <button
-              key={type.id}
-              type="button"
-              onClick={() => {
-                setMainCategory(type.id);
-                if (type.id === "Chappals") {
-                  setSelectedCategory("Chappals");
-                } else if (type.id === "Shoes") {
-                  if (selectedCategory === "Chappals") {
-                    setSelectedCategory("All");
-                  }
-                } else {
-                  setSelectedCategory("All");
-                }
-              }}
-              style={{
-                flex: "1 1 calc(50% - 4px)",
-                padding: "8px 10px",
-                borderRadius: "8px",
-                fontSize: "0.85rem",
-                fontWeight: "700",
-                textAlign: "center",
-                border: "1px solid",
-                borderColor: mainCategory === type.id ? "var(--accent-neon)" : "var(--card-border)",
-                backgroundColor: mainCategory === type.id ? "var(--accent-neon)" : "rgba(255, 255, 255, 0.02)",
-                color: mainCategory === type.id ? "var(--bg-primary)" : "var(--text-muted)",
-                transition: "all 0.2s ease",
-                boxShadow: mainCategory === type.id ? "0 0 10px var(--accent-neon-glow)" : "none",
-              }}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      
-      <div className="filter-group">
-        <h4 className="filter-group-title">Gender</h4>
-        <div className="category-list">
-          {["All", "Men", "Women", "Unisex"].map((gender) => (
-            <label key={gender} className="filter-label">
-              <input
-                type="radio"
-                name="gender-group"
-                className="filter-checkbox"
-                style={{ borderRadius: "50%" }}
-                checked={selectedGender === gender}
-                onChange={() => setSelectedGender(gender)}
-              />
-              <span style={{ display: "inline-flex", alignItems: "center" }}>
-                {gender === "Men" && <MenIcon size={16} style={{ marginRight: "4px" }} />}
-                {gender === "Women" && <WomenIcon size={16} style={{ marginRight: "4px" }} />}
-                {gender === "All" ? "All Genders" : `${gender}`}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      
-      {mainCategory !== "Chappals" && (
+      {activeSubcats.length > 0 && (
         <div className="filter-group">
-          <h4 className="filter-group-title">Shoe Type</h4>
+          <h4 className="filter-group-title">Subcategory</h4>
           <div className="category-list">
-            {["All", "Running", "Lifestyle", "Basketball"].map((category) => (
-              <label key={category} className="filter-label">
+            {activeSubcats.map((subcat) => (
+              <label key={subcat} className="filter-label">
                 <input
                   type="radio"
-                  name="category-group"
+                  name="subcategory-group"
                   className="filter-checkbox"
                   style={{ borderRadius: "50%" }}
-                  checked={selectedCategory === category}
-                  onChange={() => setSelectedCategory(category)}
+                  checked={selectedCategory === subcat}
+                  onChange={() => setSelectedCategory(subcat)}
                 />
-                <span>{category === "All" ? "All Shoes" : category}</span>
+                <span>{subcat === "All" ? `All ${mainCategory}` : subcat}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      
+      {showGender && (
+        <div className="filter-group">
+          <h4 className="filter-group-title">Gender / Age Group</h4>
+          <div className="category-list">
+            {["All", "Men", "Women", "Boys", "Girls", "Unisex"].map((gender) => (
+              <label key={gender} className="filter-label">
+                <input
+                  type="radio"
+                  name="gender-group"
+                  className="filter-checkbox"
+                  style={{ borderRadius: "50%" }}
+                  checked={selectedGender === gender}
+                  onChange={() => setSelectedGender(gender)}
+                />
+                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                  {gender === "Men" && <MenIcon size={16} style={{ marginRight: "4px" }} />}
+                  {gender === "Women" && <WomenIcon size={16} style={{ marginRight: "4px" }} />}
+                  {gender === "All" ? "All" : `${gender}`}
+                </span>
               </label>
             ))}
           </div>
@@ -168,17 +185,17 @@ const Filters = ({
         <div className="price-slider-wrapper">
           <input
             type="range"
-            min="1000"
-            max="20000"
-            step="500"
+            min={range.min}
+            max={range.max}
+            step={range.step}
             className="price-range-slider"
-            value={maxPrice}
+            value={maxPrice > range.max ? range.max : maxPrice}
             onChange={(e) => setMaxPrice(Number(e.target.value))}
           />
           <div className="price-values">
-            <span>₹1,000</span>
+            <span>₹{range.min.toLocaleString('en-IN')}</span>
             <span style={{ color: "var(--accent-neon)" }}>₹{maxPrice.toLocaleString('en-IN')}</span>
-            <span>₹20,000</span>
+            <span>₹{range.max.toLocaleString('en-IN')}</span>
           </div>
         </div>
       </div>

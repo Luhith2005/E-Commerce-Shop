@@ -18,7 +18,7 @@ const AIChat = ({ onOpenDetails }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(1); // Start with 1 for the welcome message
+  const [unreadCount, setUnreadCount] = useState(1); 
   const [addedProductNotification, setAddedProductNotification] = useState(null);
   
   const [messages, setMessages] = useState(() => {
@@ -27,7 +27,7 @@ const AIChat = ({ onOpenDetails }) => {
       {
         id: 1,
         sender: "ai",
-        text: "Namaste! Welcome to **SriRam's FootWear** AI assistant. 👟\n\nI can help you search our catalog, suggest running or basketball shoes, share discount codes, or assist with shipping policies. \n\nWhat are you looking for today?",
+        text: "Namaste! Welcome to **E-Cart** AI assistant. 🛒\n\nI can help you search our diverse catalog of mobiles, clothing, home appliances, and footwear. Ask me about new phones, clothing options, shipping policies, or discount codes.\n\nWhat are you looking for today?",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         products: []
       }
@@ -37,19 +37,19 @@ const AIChat = ({ onOpenDetails }) => {
   const chatEndRef = useRef(null);
   const isDark = theme === "dark";
 
-  // Auto scroll to bottom
+  
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isTyping, isOpen]);
 
-  // Persist chat history
+  
   useEffect(() => {
     localStorage.setItem("sriram_chat_history", JSON.stringify(messages));
   }, [messages]);
 
-  // Reset unread count when chat is opened
+  
   useEffect(() => {
     if (isOpen) {
       setUnreadCount(0);
@@ -57,9 +57,9 @@ const AIChat = ({ onOpenDetails }) => {
   }, [isOpen]);
 
   const quickActions = [
-    { label: "👟 Recommend Running Shoes", query: "Show me running shoes" },
-    { label: "🔥 Nike under ₹15,000", query: "Nike shoes under 15000" },
-    { label: "🏷️ Any Shoes on Sale?", query: "Are there any shoes on sale?" },
+    { label: "📱 Show Mobile Phones", query: "Show me mobile phones" },
+    { label: "👕 Shirts & Pants on Sale", query: "Show me clothing on sale" },
+    { label: "📺 Home Appliances", query: "Show me home appliances" },
     { label: "📦 Returns Policy", query: "What is your return policy?" }
   ];
 
@@ -67,7 +67,7 @@ const AIChat = ({ onOpenDetails }) => {
     const queryText = textToSend || inputValue;
     if (!queryText.trim()) return;
 
-    // Add user message
+    
     const userMsg = {
       id: Date.now(),
       sender: "user",
@@ -80,7 +80,7 @@ const AIChat = ({ onOpenDetails }) => {
     if (!textToSend) setInputValue("");
     setIsTyping(true);
 
-    // Simulate AI response delay
+    
     setTimeout(() => {
       const response = generateAIResponse(queryText);
       const aiMsg = {
@@ -102,43 +102,64 @@ const AIChat = ({ onOpenDetails }) => {
   const generateAIResponse = (input) => {
     const query = input.toLowerCase();
     
-    // 1. FAQ / Policy Matches
+    
     if (query.includes("return") || query.includes("refund") || query.includes("exchange")) {
       return {
-        text: "🔄 **Easy Returns & Exchanges**:\nSriRam's FootWear offers a **30-day return policy** on all unworn items in their original packaging. You can easily initiate a return/exchange from your dashboard, or visit our nearest store for immediate service.",
+        text: "🔄 **Easy Returns & Exchanges**:\nE-Cart offers a **30-day return policy** on all unused items in their original packaging. You can easily initiate a return or exchange from your account dashboard, or visit our support portal for instant assistance.",
         products: []
       };
     }
     
     if (query.includes("shipping") || query.includes("delivery") || query.includes("track") || query.includes("charge")) {
       return {
-        text: "🚚 **Shipping Details**:\n- **Free standard shipping** is provided on all orders above ₹4,999!\n- For orders below ₹4,999, a flat delivery fee of ₹150 applies.\n- Deliveries take **3 to 5 business days** depending on your location. A tracking link will be sent via email once dispatched.",
+        text: "🚚 **Shipping & Delivery Details**:\n- **Free standard shipping** is provided on all orders above ₹999!\n- For orders below ₹999, a flat delivery fee of ₹99 applies.\n- Deliveries take **2 to 4 business days** depending on your location. A tracking link will be emailed once dispatched.",
         products: []
       };
     }
     
     if (query.includes("discount") || query.includes("coupon") || query.includes("code") || query.includes("promo")) {
       return {
-        text: "🎟️ **Exclusive Coupon For You**:\nUse coupon code **SRIRAM10** at checkout to get an instant **10% OFF** on your first purchase! \n\nWe also have special prices on several footwear items. Ask me to show 'shoes on sale' to check them out!",
+        text: "🎟️ **Exclusive Coupon For You**:\nUse coupon code **ECART10** at checkout to get an instant **10% OFF** on your purchase! \n\nWe also have special prices on several products. Ask me to show 'deals on sale' to check them out!",
         products: []
       };
     }
     
     if (query.includes("contact") || query.includes("support") || query.includes("email") || query.includes("phone") || query.includes("address")) {
       return {
-        text: "📞 **Get in Touch**:\n- **Support Email**: care@sriramsfootwear.com\n- **Toll-Free Helpline**: +91 1800 456 7890 (9 AM - 6 PM, Mon-Sat)\n- **Main Showroom**: SriRam's Footwear Hub, Brigade Road, Bengaluru, India.",
+        text: "📞 **Get in Touch**:\n- **Support Email**: care@ecart.com\n- **Toll-Free Helpline**: +91 1800 123 4567 (9 AM - 6 PM, Mon-Sat)\n- **Main Office**: E-Cart Mega Hub, Brigade Road, Bengaluru, India.",
         products: []
       };
     }
 
-    // 2. Product Search & Catalog Matches
+    
     let filtered = [...shoes];
     let criteria = [];
 
-    // Brand check
-    const brands = ["nike", "adidas", "puma", "jordan", "reebok", "under armour", "converse", "vans", "new balance", "asics", "fila", "skechers"];
+    
+    let matchedCategory = null;
+    if (query.includes("phone") || query.includes("mobile") || query.includes("iphone") || query.includes("smartphone")) {
+      matchedCategory = "Mobiles";
+    } else if (query.includes("clothing") || query.includes("shirt") || query.includes("pant") || query.includes("trousers") || query.includes("wear") || query.includes("polo")) {
+      matchedCategory = "Clothing";
+    } else if (query.includes("appliance") || query.includes("washing") || query.includes("ac") || query.includes("cooler") || query.includes("fan") || query.includes("tv") || query.includes("stove")) {
+      matchedCategory = "Appliances";
+    } else if (query.includes("shoe") || query.includes("footwear") || query.includes("slide") || query.includes("chappal") || query.includes("sandal") || query.includes("sneaker")) {
+      matchedCategory = "Footwear";
+    }
+    if (matchedCategory) {
+      filtered = filtered.filter(s => s.category === matchedCategory);
+      criteria.push(`category **${matchedCategory}**`);
+    }
+
+    
+    const brandsList = [
+      "apple", "samsung", "oneplus", "xiaomi",
+      "u.s. polo assn.", "us polo", "levi's", "levis", "roadster", "h&m", "hm", "zara",
+      "lg", "voltas", "symphony", "bajaj", "sony", "prestige",
+      "nike", "adidas", "puma", "jordan", "reebok", "under armour", "converse", "vans", "new balance", "asics", "fila", "skechers"
+    ];
     let matchedBrand = null;
-    for (const b of brands) {
+    for (const b of brandsList) {
       if (query.includes(b)) {
         matchedBrand = b;
         break;
@@ -146,7 +167,10 @@ const AIChat = ({ onOpenDetails }) => {
     }
     if (matchedBrand) {
       let targetBrand = matchedBrand;
-      if (matchedBrand === "under armour") targetBrand = "Under Armour";
+      if (matchedBrand === "us polo" || matchedBrand === "u.s. polo assn.") targetBrand = "U.S. Polo Assn.";
+      else if (matchedBrand === "levis" || matchedBrand === "levi's") targetBrand = "Levi's";
+      else if (matchedBrand === "hm" || matchedBrand === "h&m") targetBrand = "H&M";
+      else if (matchedBrand === "under armour") targetBrand = "Under Armour";
       else if (matchedBrand === "new balance") targetBrand = "New Balance";
       else targetBrand = matchedBrand.charAt(0).toUpperCase() + matchedBrand.slice(1);
       
@@ -154,38 +178,25 @@ const AIChat = ({ onOpenDetails }) => {
       criteria.push(`brand **${targetBrand}**`);
     }
 
-    // Category check
-    let matchedCategory = null;
-    if (query.includes("running") || query.includes("run") || query.includes("jogging")) {
-      matchedCategory = "Running";
-    } else if (query.includes("lifestyle") || query.includes("casual") || query.includes("sneaker") || query.includes("everyday")) {
-      matchedCategory = "Lifestyle";
-    } else if (query.includes("basketball") || query.includes("hoops") || query.includes("court")) {
-      matchedCategory = "Basketball";
-    } else if (query.includes("chappal") || query.includes("slide") || query.includes("sandal") || query.includes("flip") || query.includes("flop")) {
-      matchedCategory = "Chappals";
-    }
-    if (matchedCategory) {
-      filtered = filtered.filter(s => s.category === matchedCategory);
-      criteria.push(`category **${matchedCategory === "Chappals" ? "Slides & Sandals" : matchedCategory}**`);
-    }
-
-    // Gender check
+    
     let matchedGender = null;
     if (query.includes("women") || query.includes("woman") || query.includes("female") || query.includes("lady") || query.includes("ladies")) {
       matchedGender = "Women";
-    } else if (query.includes("men") || query.includes("man") || query.includes("male") || query.includes("boy")) {
+    } else if (query.includes("boys") || query.includes("boy")) {
+      matchedGender = "Boys";
+    } else if (query.includes("girls") || query.includes("girl")) {
+      matchedGender = "Girls";
+    } else if (query.includes("men") || query.includes("man") || query.includes("male")) {
       matchedGender = "Men";
     } else if (query.includes("unisex")) {
       matchedGender = "Unisex";
     }
     if (matchedGender) {
-      // Return exact gender or unisex
-      filtered = filtered.filter(s => s.gender === matchedGender || s.gender === "Unisex");
-      criteria.push(`gender **${matchedGender}**`);
+      filtered = filtered.filter(s => !s.gender || s.gender === matchedGender || s.gender === "Unisex");
+      criteria.push(`gender/age **${matchedGender}**`);
     }
 
-    // Price checks
+    
     let priceLimit = null;
     const underRegex = /(?:under|below|less than|within)\s*(?:rs\.?|inr|₹)?\s*(\d+)/i;
     const match = query.match(underRegex);
@@ -195,27 +206,27 @@ const AIChat = ({ onOpenDetails }) => {
       criteria.push(`price under **₹${priceLimit.toLocaleString('en-IN')}**`);
     } else if (query.includes("cheap") || query.includes("budget") || query.includes("affordable") || query.includes("lowest")) {
       filtered.sort((a, b) => a.price - b.price);
-      criteria.push("affordable models");
+      criteria.push("affordable options");
     } else if (query.includes("expensive") || query.includes("premium") || query.includes("costly") || query.includes("high-end") || query.includes("luxury")) {
-      filtered = filtered.filter(s => s.price >= 12000);
+      filtered = filtered.filter(s => s.price >= 15000);
       filtered.sort((a, b) => b.price - a.price);
-      criteria.push("premium models");
+      criteria.push("premium offerings");
     }
 
-    // Sale check
+    
     if (query.includes("sale") || query.includes("discount") || query.includes("offer") || query.includes("deal") || query.includes("percentage") || query.includes("percent")) {
       filtered = filtered.filter(s => s.discount > 0);
       filtered.sort((a, b) => b.discount - a.discount);
       criteria.push("on sale");
     }
 
-    // New check
+    
     if (query.includes("new") || query.includes("latest") || query.includes("fresh") || query.includes("recent")) {
       filtered = filtered.filter(s => s.isNew);
       criteria.push("new arrivals");
     }
 
-    // Check if we found anything
+    
     if (criteria.length > 0) {
       const criteriaStr = criteria.join(", ");
       if (filtered.length > 0) {
@@ -225,7 +236,6 @@ const AIChat = ({ onOpenDetails }) => {
           products: topMatches
         };
       } else {
-        // Fallback: recommend featured/best-sellers
         const featured = shoes.filter(s => s.isFeatured).slice(0, 3);
         return {
           text: `😔 I couldn't find any products matching your specific search for ${criteriaStr}.\n\nHowever, you might like some of our **best-sellers** instead:`,
@@ -234,29 +244,28 @@ const AIChat = ({ onOpenDetails }) => {
       }
     }
 
-    // 3. Fallback greeting
+    
     if (query.includes("hi") || query.includes("hello") || query.includes("hey") || query.includes("namaste") || query.includes("hola")) {
       return {
-        text: "👋 Hello! Great to see you. How can I help you find your next perfect pair of shoes today? \n\nYou can ask me things like:\n- *'Show me Nike running shoes'*\n- *'Are there any Jordans under 18000?'*\n- *'What is the refund policy?'*",
+        text: "👋 Hello! Great to see you. How can I help you find what you need today? \n\nYou can ask me things like:\n- *'Show me the latest iPhones'*\n- *'Do you have Roadster shirts?'*\n- *'Washing machines under 40000'*\n- *'What is the shipping cost?'*",
         products: []
       };
     }
 
-    // Unrecognized queries
+    
     const defaultFeatured = shoes.filter(s => s.isFeatured).slice(0, 3);
     return {
-      text: "🤔 I'm not sure I fully understood. I'm SriRam's Footwear assistant and specialize in shoes, brand suggestions, delivery status, and store info.\n\nHere are some of our **highly recommended sneakers** to browse:",
+      text: "🤔 I'm not sure I fully understood. I'm the E-Cart assistant and specialize in catalog searches, shipping details, coupons, and store policies.\n\nHere are some of our **featured items** to browse:",
       products: defaultFeatured
     };
   };
 
   const handleAddToCart = (product) => {
-    // default size and color
-    const size = product.sizes[0] || 9;
+    const size = product.sizes[0] || "Standard";
     const color = product.colors[0] || "#ffffff";
     addToCart(product, size, color);
     
-    setAddedProductNotification(`${product.name} (Size US ${size}) added to cart!`);
+    setAddedProductNotification(`${product.name} added to cart!`);
     setTimeout(() => setAddedProductNotification(null), 3000);
   };
 
@@ -265,7 +274,7 @@ const AIChat = ({ onOpenDetails }) => {
       {
         id: 1,
         sender: "ai",
-        text: "Namaste! Welcome back to **SriRam's FootWear** AI assistant. 👟\n\nI can help you search our catalog, suggest running or basketball shoes, share discount codes, or assist with shipping policies. \n\nWhat are you looking for today?",
+        text: "Namaste! Welcome back to **E-Cart** AI assistant. 🛒\n\nI can help you search our diverse catalog of mobiles, clothing, home appliances, and footwear. Ask me about new phones, clothing options, shipping policies, or discount codes.\n\nWhat are you looking for today?",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         products: []
       }
@@ -276,7 +285,7 @@ const AIChat = ({ onOpenDetails }) => {
 
   return (
     <div style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999, fontFamily: "var(--font-body)" }}>
-      {/* Floating Launcher Button */}
+      {}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -332,7 +341,7 @@ const AIChat = ({ onOpenDetails }) => {
         </button>
       )}
 
-      {/* Chat Window Container */}
+      {}
       {isOpen && (
         <div
           style={{
@@ -353,7 +362,6 @@ const AIChat = ({ onOpenDetails }) => {
             transformOrigin: "bottom right"
           }}
         >
-          {/* Inject dynamic animations in a style tag */}
           <style>{`
             @keyframes chatAppear {
               from { opacity: 0; transform: scale(0.9) translateY(20px); }
@@ -379,7 +387,7 @@ const AIChat = ({ onOpenDetails }) => {
             }
           `}</style>
 
-          {/* Header */}
+          {}
           <div
             style={{
               padding: "16px 20px",
@@ -408,7 +416,7 @@ const AIChat = ({ onOpenDetails }) => {
                 <Sparkles size={18} style={{ color: "#000" }} />
               </div>
               <div>
-                <h3 style={{ fontSize: "0.95rem", fontWeight: "700", color: "var(--text-primary)", margin: 0, lineHeight: 1.2 }}>SriRam's AI Guide</h3>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: "700", color: "var(--text-primary)", margin: 0, lineHeight: 1.2 }}>E-Cart AI Assistant</h3>
                 <span style={{ fontSize: "0.75rem", color: "var(--accent-neon)", display: "flex", alignItems: "center", gap: "4px" }}>
                   <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--success)", display: "inline-block" }}></span>
                   Online • Assistant
@@ -417,7 +425,6 @@ const AIChat = ({ onOpenDetails }) => {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              {/* Reset History */}
               <button
                 onClick={clearChat}
                 title="Reset Chat History"
@@ -435,7 +442,6 @@ const AIChat = ({ onOpenDetails }) => {
               >
                 <RotateCcw size={16} />
               </button>
-              {/* Close */}
               <button
                 onClick={() => setIsOpen(false)}
                 style={{
@@ -455,7 +461,7 @@ const AIChat = ({ onOpenDetails }) => {
             </div>
           </div>
 
-          {/* Messages Body */}
+          {}
           <div
             className="scrollbar-hidden"
             style={{
@@ -479,7 +485,6 @@ const AIChat = ({ onOpenDetails }) => {
                   alignSelf: msg.sender === "user" ? "flex-end" : "flex-start"
                 }}
               >
-                {/* Bubble */}
                 <div
                   style={{
                     padding: "12px 16px",
@@ -498,9 +503,7 @@ const AIChat = ({ onOpenDetails }) => {
                     boxShadow: msg.sender === "user" ? "0 2px 8px rgba(102, 252, 241, 0.05)" : "none"
                   }}
                 >
-                  {/* Simplistic custom markdown text formatter for bold/links */}
                   {msg.text.split("\n").map((line, lIdx) => {
-                    // Check for bold terms like **text**
                     const parts = line.split(/\*\*([^*]+)\*\*/g);
                     return (
                       <div key={lIdx} style={{ margin: "2px 0" }}>
@@ -515,7 +518,7 @@ const AIChat = ({ onOpenDetails }) => {
                   })}
                 </div>
 
-                {/* Horizontal Product List */}
+                {}
                 {msg.products && msg.products.length > 0 && (
                   <div
                     className="scrollbar-hidden"
@@ -544,12 +547,10 @@ const AIChat = ({ onOpenDetails }) => {
                           textAlign: "center"
                         }}
                       >
-                        {/* Image */}
                         <div style={{ height: "60px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "6px" }}>
                           <img src={prod.image} alt={prod.name} style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }} />
                         </div>
                         
-                        {/* Brand & Title */}
                         <span style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--text-muted)", fontWeight: "700" }}>
                           {prod.brand}
                         </span>
@@ -565,12 +566,10 @@ const AIChat = ({ onOpenDetails }) => {
                           {prod.name}
                         </h4>
 
-                        {/* Price */}
                         <span style={{ fontSize: "0.85rem", fontWeight: "800", color: "var(--accent-neon)", marginBottom: "8px" }}>
                           ₹{prod.price.toLocaleString('en-IN')}
                         </span>
 
-                        {/* Actions Row */}
                         <div style={{ display: "flex", gap: "4px", width: "100%" }}>
                           <button
                             onClick={() => onOpenDetails(prod)}
@@ -614,14 +613,12 @@ const AIChat = ({ onOpenDetails }) => {
                   </div>
                 )}
 
-                {/* Time */}
                 <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginTop: "4px", alignSelf: msg.sender === "user" ? "flex-end" : "flex-start" }}>
                   {msg.timestamp}
                 </span>
               </div>
             ))}
 
-            {/* Simulating typing animation */}
             {isTyping && (
               <div style={{ display: "flex", flexDirection: "column", alignSelf: "flex-start", maxWidth: "80%" }}>
                 <div
@@ -646,7 +643,6 @@ const AIChat = ({ onOpenDetails }) => {
             <div ref={chatEndRef} />
           </div>
 
-          {/* Inline notification for items added to cart */}
           {addedProductNotification && (
             <div
               style={{
@@ -666,7 +662,7 @@ const AIChat = ({ onOpenDetails }) => {
             </div>
           )}
 
-          {/* Quick Action Sugestions Area */}
+          {}
           <div
             className="scrollbar-hidden"
             style={{
@@ -708,7 +704,7 @@ const AIChat = ({ onOpenDetails }) => {
             ))}
           </div>
 
-          {/* Footer Input Area */}
+          {}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -725,7 +721,7 @@ const AIChat = ({ onOpenDetails }) => {
           >
             <input
               type="text"
-              placeholder="Ask SriRam's AI Assistant..."
+              placeholder="Ask E-Cart's AI Assistant..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               style={{

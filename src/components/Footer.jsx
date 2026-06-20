@@ -34,10 +34,10 @@ const Footer = () => {
               onClick={() => navigateTo("home")}
             >
               <BrandLogo isDark={isDark} />
-              <span>SriRam's FootWear</span>
+              <span>E-Cart</span>
             </div>
             <p>
-              Premium footwear designed for performance, comfort, and style. We offer the best sneakers from top global brands to elevate your everyday walk.
+              Your premier one-stop destination for premium mobile phones, stylish clothing, advanced home appliances, and high-performance footwear.
             </p>
             <div className="footer-socials">
               <a href="https://instagram.com" target="_blank" rel="noreferrer" className="footer-social-btn" aria-label="Instagram">
@@ -60,7 +60,7 @@ const Footer = () => {
                 <a href="#home" onClick={(e) => { e.preventDefault(); navigateTo("home"); }}>Home</a>
               </li>
               <li>
-                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop"); }}>Shop All Shoes</a>
+                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop"); }}>Shop Catalog</a>
               </li>
               <li>
                 <a href="#cart" onClick={(e) => { e.preventDefault(); navigateTo("cart"); }}>Shopping Cart</a>
@@ -73,16 +73,16 @@ const Footer = () => {
             <h4>Top Brands</h4>
             <ul>
               <li>
+                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop", "Apple"); }}>Apple</a>
+              </li>
+              <li>
+                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop", "Samsung"); }}>Samsung</a>
+              </li>
+              <li>
                 <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop", "Nike"); }}>Nike</a>
               </li>
               <li>
-                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop", "Adidas"); }}>Adidas</a>
-              </li>
-              <li>
-                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop", "Puma"); }}>Puma</a>
-              </li>
-              <li>
-                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop", "Jordan"); }}>Air Jordan</a>
+                <a href="#shop" onClick={(e) => { e.preventDefault(); navigateTo("shop", "Sony"); }}>Sony</a>
               </li>
             </ul>
           </div>
@@ -90,7 +90,7 @@ const Footer = () => {
           
           <div className="footer-newsletter">
             <h4>Join The Club</h4>
-            <p>Subscribe to receive special offers, release notifications, and shoe care tips.</p>
+            <p>Subscribe to receive special offers, product release notifications, and exclusive deals.</p>
             <form onSubmit={handleSubscribe} className="newsletter-form">
               <input
                 type="email"
@@ -113,7 +113,7 @@ const Footer = () => {
 
         
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} SriRam's FootWear. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} E-Cart. All rights reserved.</p>
           <div style={{ display: "flex", gap: "20px" }}>
             <a href="#privacy" style={{ hover: { color: "var(--accent-neon)" } }}>Privacy Policy</a>
             <a href="#terms">Terms of Service</a>

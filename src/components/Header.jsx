@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
-import { ShoppingBag, Menu, X, Sun, Moon } from "lucide-react";
+import { ShoppingBag, Menu, X, Sun, Moon, Search } from "lucide-react";
 import BrandLogo from "./BrandLogo";
 
 const Header = () => {
-  const { activePage, navigateTo, getCartCount, theme, toggleTheme } = useCart();
+  const { searchQuery, setSearchQuery, activePage, navigateTo, getCartCount, theme, toggleTheme } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [localSearch, setLocalSearch] = useState(searchQuery || "");
+
+  useEffect(() => {
+    setLocalSearch(searchQuery || "");
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchQuery(localSearch);
+    navigateTo("shop");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,8 +39,21 @@ const Header = () => {
         
         <div className="logo-wrapper" onClick={() => navigateTo("home")}>
           <BrandLogo isDark={isDark} />
-          <span>SriRam's FootWear</span>
+          <span>E-Cart</span>
         </div>
+
+        <form onSubmit={handleSearchSubmit} className="header-search-form">
+          <input
+            type="text"
+            placeholder="Search for products, brands and more..."
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            className="header-search-input"
+          />
+          <button type="submit" className="header-search-btn" aria-label="Search">
+            <Search size={18} />
+          </button>
+        </form>
 
         <nav className="nav-links">
           <a
