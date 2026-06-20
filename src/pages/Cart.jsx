@@ -68,7 +68,7 @@ const Cart = () => {
           <CheckCircle className="success-icon" style={{ color: "var(--success)", width: "64px", height: "64px", marginBottom: "16px" }} />
           <h2 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "8px" }}>Order Confirmed!</h2>
           <p style={{ color: "var(--text-muted)", marginBottom: "24px" }}>
-            Thank you for shopping at <strong>SriRam's FootWear</strong>! Your order has been placed successfully.
+            Thank you for shopping at <strong>SriRam's E-Commerce Shop</strong>! Your order has been placed successfully.
           </p>
           <div
             style={{
