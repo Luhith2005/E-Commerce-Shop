@@ -174,7 +174,7 @@ export const shoes = [
     originalPrice: 199999,
     rating: 4.7,
     reviews: 95,
-    image: "https://images.unsplash.com/photo-1496181130204-7552cc54ac4b?w=600&auto=format&fit=crop",
+    image: "/images/dell-xps-15-9530.png",
     description: "High-performance laptop featuring a 13th Gen Intel Core i7 processor, NVIDIA RTX 4060 graphics, and a gorgeous InfinityEdge touch display.",
     sizes: ["16GB/512GB", "32GB/1TB"],
     colors: ["#cccccc", "#222222"],
