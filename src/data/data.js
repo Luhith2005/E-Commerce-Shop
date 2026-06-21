@@ -218,6 +218,42 @@ export const shoes = [
     isFeatured: true,
     discount: 5
   },
+  {
+    id: 505,
+    name: "ASUS ROG Zephyrus G14",
+    brand: "ASUS",
+    category: "Laptops",
+    type: "Gaming",
+    price: 149990,
+    originalPrice: 169990,
+    rating: 4.8,
+    reviews: 112,
+    image: "/images/asus-rog-zephyrus.png",
+    description: "Sleek and powerful 14-inch gaming laptop featuring an AMD Ryzen 9 processor, NVIDIA RTX 4070 graphics, and a stunning 120Hz ROG Nebula OLED display.",
+    sizes: ["16GB/1TB", "32GB/1TB"],
+    colors: ["#222222", "#ffffff"],
+    isNew: true,
+    isFeatured: true,
+    discount: 11
+  },
+  {
+    id: 506,
+    name: "MSI Raider GE78 HX",
+    brand: "MSI",
+    category: "Laptops",
+    type: "Gaming",
+    price: 249990,
+    originalPrice: 279990,
+    rating: 4.9,
+    reviews: 64,
+    image: "/images/msi-raider-ge78.png",
+    description: "Extreme performance gaming powerhouse with 13th Gen Intel Core i9 processor, NVIDIA RTX 4090 graphics, and an immersive RGB lightbar design.",
+    sizes: ["32GB/2TB"],
+    colors: ["#111111"],
+    isNew: true,
+    isFeatured: true,
+    discount: 10
+  },
 
   
   {
